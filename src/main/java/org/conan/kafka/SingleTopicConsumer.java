@@ -1,7 +1,9 @@
 package org.conan.kafka;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +38,8 @@ public class SingleTopicConsumer implements Runnable {
     public SingleTopicConsumer(int partition) {
         logger.info("Initial Partition "+partition+" ...");
         _partition = partition;
-        lastOffset =  _zk.getLastOffset("/hdfs/" + conf.groupId() + "/" + _topic + "/" + partition);
+        //lastOffset =  _zk.getLastOffset("/hdfs/" + conf.groupId() + "/" + _topic + "/" + partition);
+        lastOffset = 17136;
     }
     private static String _topic;
     private static List<String> _seeds;
@@ -118,11 +121,17 @@ public class SingleTopicConsumer implements Runnable {
                 ByteBuffer payload = messageAndOffset.message().payload();
                 byte[] bytes = new byte[payload.limit()];
                 payload.get(bytes);
-                //TODO 中文乱码
-                String mes = new String(bytes);
+                String mes = null;
+                try {
+                    mes = new String(bytes,"UTF-8");
+                    System.out.println(mes);
+                    //System.out.println("当前JVM的默认字符集：" + Charset.defaultCharset().newEncoder());
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
                 boolean inQueue = messages.offer(mes+'\n');
                 Long currentTime = System.currentTimeMillis() / 1000;
-                if (_lastTime==null || currentTime >= _lastTime + 60 || !inQueue) {
+                if (_lastTime==null || currentTime >= _lastTime + 30 || !inQueue) {
                     _lastTime = currentTime;
                     hdfsWriter();
                 }
@@ -144,7 +153,7 @@ public class SingleTopicConsumer implements Runnable {
                     System.out.println("======reset the sleepTimes======");
                     sleepTimes = 0;
                 }
-                System.out.println("............sleepTimes:"+sleepTimes+".............");
+                //System.out.println("............sleepTimes:"+sleepTimes+".............");
             }
         }
         consumer.close();

@@ -21,7 +21,7 @@ public class KafkaProducer {
         ProducerConfig producerConfig = new ProducerConfig(properties);
         Producer<String, String> producer = new Producer<String, String>(producerConfig);
         // 构建消息体
-        KeyedMessage<String, String> keyedMessage = new KeyedMessage<String, String>("zz", "试试中文");
+        KeyedMessage<String, String> keyedMessage = new KeyedMessage<String, String>("test", "终于测试成功了");
         producer.send(keyedMessage);
 
         Thread.sleep(1000);

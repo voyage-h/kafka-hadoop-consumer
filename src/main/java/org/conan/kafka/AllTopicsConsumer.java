@@ -1,6 +1,7 @@
 package org.conan.kafka;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -124,8 +125,12 @@ public class AllTopicsConsumer implements Runnable{
                 ByteBuffer payload = messageAndOffset.message().payload();
                 byte[] bytes = new byte[payload.limit()];
                 payload.get(bytes);
-                //TODO 中文乱码
-                String mes = new String(bytes);
+                String mes = null;
+                try {
+                    mes = new String(bytes,"UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
                 boolean inQueue = messages.offer(mes+'\n');
                 Long currentTime = System.currentTimeMillis() / 1000;
                 if (_lastTime==null || currentTime >= _lastTime + 60 || !inQueue || messages.size() >= _maxReads) {
