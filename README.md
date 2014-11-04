@@ -5,7 +5,7 @@ Send kafka message to hdfs using api not mapreduce
 #you can fetch one topic with one partition or all partitions,
 #or you can fetch all topics with all partitions,if you like.
 
-#how to use?
+#QUICK START
 1.mvn package 
 2.create a consumer.properties like this in the resourse/hadoop
 3.hadoop jar kafkaHdfs-1.0-SNAPSHOT-jar-with-dependencies.jar org.conan.kafka.SingleTopicConsumer $topic $path/consumer.properties
