@@ -38,8 +38,7 @@ public class SingleTopicConsumer implements Runnable {
     public SingleTopicConsumer(int partition) {
         logger.info("Initial Partition "+partition+" ...");
         _partition = partition;
-        //lastOffset =  _zk.getLastOffset("/hdfs/" + conf.groupId() + "/" + _topic + "/" + partition);
-        lastOffset = 17136;
+        lastOffset =  _zk.getLastOffset("/hdfs/" + conf.groupId() + "/" + _topic + "/" + partition);
     }
     private static String _topic;
     private static List<String> _seeds;
@@ -50,14 +49,14 @@ public class SingleTopicConsumer implements Runnable {
     private static ConsumerConfig conf;
     private static HdfsUtil hdfs;
     public static void main(String[] args) throws Exception {
-        String path;
+        String path = "";
         if (args != null && args.length == 2) {
             _topic = args[0];
             path = args[1];
         }
         else {
-            _topic = "test";
-            path = "src/main/resources/hadoop/consumer.properties";
+            System.out.println("Invalid parameters");
+            System.exit(0);
         }
         conf = new ConsumerConfig(path);
         logger = logger.getLogger(SingleTopicConsumer.class.toString());
@@ -85,7 +84,7 @@ public class SingleTopicConsumer implements Runnable {
             lastOffset = getLastOffset(consumer, _topic, _partition,kafka.api.OffsetRequest.LatestTime(), clientName);
         }
         int numErrors = 0;
-        while (true) {
+        while (fetchSize>0) {
             if (consumer == null) {consumer = new SimpleConsumer(leadBroker, _port, 1000000, 64 * 1024, clientName);}
             // Note: this fetchSize of 100000 might need to be increased if large batches are written to Kafka
             FetchRequest req = new FetchRequestBuilder().clientId(clientName).addFetch(_topic, _partition, lastOffset, fetchSize).build();
@@ -136,6 +135,7 @@ public class SingleTopicConsumer implements Runnable {
                     hdfsWriter();
                 }
                 numRead++;
+                fetchSize--;
                 sleepTimes = 0;
             }
             if (numRead == 0) {

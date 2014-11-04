@@ -52,12 +52,13 @@ public class AllTopicsConsumer implements Runnable{
     private static HdfsUtil hdfs;
 
     public static void main(String[] args) {
-        String conf_path;
+        String conf_path = "";
         if (args != null && args.length == 1) {
             conf_path = args[0];
         }
         else {
-            conf_path = "src/main/resources/hadoop/consumer.properties";
+            System.out.println("Invalid parameters");
+            System.exit(0);
         }
         conf = new ConsumerConfig(conf_path);
         logger = logger.getLogger(SingleTopicConsumer.class.toString());
@@ -90,7 +91,7 @@ public class AllTopicsConsumer implements Runnable{
             lastOffset = getLastOffset(consumer, _topic, _partition,kafka.api.OffsetRequest.LatestTime(), clientName);
         }
         int numErrors = 0;
-        while (true) {
+        while (fetchSize>0) {
             if (consumer == null) {consumer = new SimpleConsumer(leadBroker, _port, 1000000, 64 * 1024, clientName);}
             FetchRequest req = new FetchRequestBuilder().clientId(clientName).addFetch(_topic, _partition, lastOffset, fetchSize).build();
             FetchResponse fetchResponse = consumer.fetch(req);
@@ -138,6 +139,7 @@ public class AllTopicsConsumer implements Runnable{
                     hdfsWriter();
                 }
                 numRead++;
+                fetchSize--;
                 sleepTimes = 0;
             }
             if (numRead == 0) {
